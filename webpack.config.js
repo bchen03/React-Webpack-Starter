@@ -1,7 +1,10 @@
-var webpack = require('webpack');
-var path = require('path');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
+'use strict';
+
+const webpack = require('webpack');
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 var SRC_DIR = path.resolve(__dirname, "src");
 var DIST_DIR = path.resolve(__dirname, "dist");
@@ -34,20 +37,45 @@ var config = {
                 loader: "babel-loader",
                 options: {
                     presets: [
-                        ["react"], 
-                        ["es2015", { modules: false }],  // Enable tree-shaking
-                        ["stage-2"] 
+                        // ["react"], 
+                        // ["es2015", { modules: false }],  // Enable tree-shaking
+                        // ["stage-2"] 
                     ]
                 }
             },
             { 
-                test: /\.scss$/, 
+                test: /\.(css|scss)$/, 
                 use: ExtractTextPlugin.extract({
                     fallback: "style-loader",
                     use: ["css-loader", "sass-loader"],
                     publicPath: "/dist"
                 })
-            }
+            },
+            {
+                test: /\.(gif|jpg|png|svg)$/, 
+                use: [
+                    {
+                        loader: "url-loader",
+                        options: {
+                            limit: 8192
+                        }
+                    }
+                ] 
+            },            
+            {
+                test: /.(ttf|otf|eot|svg|woff(2)?)(\?[a-z0-9]+)?$/,
+                use: [
+                        {
+                        loader: 'file-loader',
+                        options: {
+                            name: '[name].[ext]',
+                            outputPath: 'font/',
+                            publicPath: '/',
+                            useRelativePath: true
+                        }
+                    }
+                ]
+            }            
         ]
     },
     plugins: [
@@ -64,7 +92,8 @@ var config = {
             filename: "styles.css",
             disable: false,
             allChunks: true
-        })
+        }),
+        new UglifyJsPlugin()
     ]
 };
 
