@@ -9,12 +9,47 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 var SRC_DIR = path.resolve(__dirname, "src");
 var DIST_DIR = path.resolve(__dirname, "dist");
 
+var isProduction = process.env.NODE_ENV === "production";
+console.log("webpack.config.js - isProduction =", isProduction);
+
+var plugins = [
+    new HtmlWebpackPlugin({
+        title: 'React Webpack Starter',
+        template: SRC_DIR + '/index.ejs', // Load a custom template (ejs by default see the FAQ for details)
+        minify: {
+            collapseWhitespace: true
+        },
+        hash: true   // Adds hash as query parameter
+    }),
+    new ExtractTextPlugin({     // Generate separate .css and remove from bundle.js
+        //filename: "styles.[contenthash].css",
+        filename: "styles.css",
+        disable: false,
+        allChunks: true
+    }),
+    new webpack.optimize.CommonsChunkPlugin({
+        name: "vendor",
+        filename: isProduction ? "vendor.[hash].js" : "vendor.js",
+        minChunks(module) {
+            return module.context && module.context.indexOf("node_modules") > -1;
+        }
+    })
+];
+
+if (isProduction) {
+    // Only use UglifyJsPlugin() in production mode, 
+    // Redux shows a console warning when used in development mode
+    plugins.push(
+        new UglifyJsPlugin()
+    );
+}
+
 var config = {
     entry: SRC_DIR + "/index.js",
+    devtool: isProduction ? "" : "source-map",
     output: {
         path: DIST_DIR,
-        //filename: "bundle.[hash].js",
-        filename: "bundle.js"
+        filename: isProduction ? "bundle.[hash].js" : "bundle.js"
         //,publicPath: "/"
     },
     devServer: {
@@ -78,23 +113,7 @@ var config = {
             }            
         ]
     },
-    plugins: [
-        new HtmlWebpackPlugin({
-            title: 'React Webpack Starter',
-            template: SRC_DIR + '/index.ejs', // Load a custom template (ejs by default see the FAQ for details)
-            minify: {
-                collapseWhitespace: true
-            },
-            hash: true   // Adds hash as query parameter
-          }),
-        new ExtractTextPlugin({     // Generate separate .css and remove from bundle.js
-            //filename: "styles.[contenthash].css",
-            filename: "styles.css",
-            disable: false,
-            allChunks: true
-        }),
-        new UglifyJsPlugin()
-    ]
+    plugins: plugins
 };
 
 module.exports = config;
