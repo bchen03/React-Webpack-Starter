@@ -78,6 +78,11 @@ var config = {
                     ]
                 }
             },
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: ["babel-loader", "eslint-loader"]
+            },
             { 
                 test: /\.(css|scss)$/, 
                 use: ExtractTextPlugin.extract({
